@@ -1,15 +1,32 @@
 class ExampleScene extends Phaser.Scene {
-  preload() {}
-  create() {}
-  update() {}
   ball;
+  paddle;
   preload() {
     this.load.image("ball", "js/img/ball.png");
+    this.load.image("paddle", "js/img/paddle.png");
   }
-   create() {
-    this.ball = this.add.sprite(50, 50, "ball");
+
+  create() {
+    this.ball = this.physics.add.sprite(50, 50, "ball");
+    this.ball.body.setVelocity(150, -150);
+    this.ball.setBounce(1, 1);
+    this.ball.setCollideWorldBounds(true);
+    this.ball.body.setBounce(1);
+
+    this.paddle = this.physics.add.sprite(
+      this.scale.width * 0.5,
+      this.scale.height - 25,
+      "paddle"
+    );
+    this.paddle.setOrigin(0.5, 1);
+    this.paddle.body.setImmovable(true);
+
+    this.physics.add.collider(this.ball, this.paddle);
   }
-  
+
+  update() {
+    this.paddle.x = this.input.x || this.scale.width * 0.5;
+  }
 }
 
 const config = {
@@ -17,12 +34,17 @@ const config = {
   width: 480,
   height: 320,
   scene: ExampleScene,
-    scale: {
+  physics: {
+    default: "arcade",
+    arcade: {
+      debug: false,
+    },
+  },
+  scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   backgroundColor: "#eeeeee",
-
 };
 
 const game = new Phaser.Game(config);
