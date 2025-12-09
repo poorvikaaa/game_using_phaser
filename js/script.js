@@ -1,9 +1,14 @@
 class ExampleScene extends Phaser.Scene {
   ball;
   paddle;
+  bricks;
+  scoreText;
+  score = 0;
+  gameOver = false;
   preload() {
     this.load.image("ball", "js/img/ball.png");
     this.load.image("paddle", "js/img/paddle.png");
+    this.load.image("brick", "js/img/bricks.png");
   }
 
   create() {
@@ -23,6 +28,51 @@ class ExampleScene extends Phaser.Scene {
 
     this.physics.add.collider(this.ball, this.paddle);
     this.physics.world.checkCollision.down = false;
+    this.initBricks();
+    this.scoreText = this.add.text(5, 5, "Points: 0", {
+      font: "18px Arial",
+      color: "#0095dd",
+    });
+  }
+
+  hitBrick(ball, brick) {
+    brick.destroy();
+    this.score += 10;
+    this.scoreText.setText(`Points: ${this.score}`);
+    
+    if (this.bricks.countActive() === 0) {
+      alert(`You Win! Final Score: ${this.score}`);
+      location.reload();
+    }
+  }
+
+  initBricks() {
+    const bricksLayout = {
+      width: 50,
+      height: 20,
+      count: {
+        row: 3,
+        col: 7,
+      },
+      offset: {
+        top: 50,
+        left: 60,
+      },
+      padding: 10,
+    };
+    this.bricks = this.add.group();
+    for (let c = 0; c < bricksLayout.count.col; c++) {
+      for (let r = 0; r < bricksLayout.count.row; r++) {
+        const brickX = c * (bricksLayout.width + bricksLayout.padding) + bricksLayout.offset.left;
+        const brickY = r * (bricksLayout.height + bricksLayout.padding) + bricksLayout.offset.top;
+
+        const newBrick = this.add.sprite(brickX, brickY, "brick");
+        this.physics.add.existing(newBrick);
+        newBrick.body.setImmovable(true);
+        this.bricks.add(newBrick);
+      }
+    }
+    this.physics.add.collider(this.ball, this.bricks, this.hitBrick, null, this);
   }
 
   update() {
@@ -31,11 +81,11 @@ class ExampleScene extends Phaser.Scene {
       this.physics.world.bounds,
       this.ball.getBounds(),
     );
-    if (ballIsOutOfBounds) {
-  // Game over logic
+    if (ballIsOutOfBounds && !this.gameOver) {
+      this.gameOver = true;
       alert("Game over!");
       location.reload();
-}
+    }
   }
 }
 
